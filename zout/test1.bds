@@ -1,0 +1,1328 @@
+binary-debuggable-source
+0000 0000 f test1.asm
+6000 6000 s 	org 6000H
+6000 6000 s W	equ 8
+6000 6000 s VIDEO	equ 3c00H
+6000 6000 s CURSOR	equ 4020H
+6000 6000 s CURCOL1	equ 3c00H - 64	
+6000 6000 s CURCOL2	equ 3c00H - 64 + 20
+6000 6000 s CURCOL3	equ 3c00H - 64 + 40
+6000 6000 d 3e00
+6000 6000 s START	ld a,0
+6002 6002 d 329c40
+6002 6002 s 	ld (409cH),a		; Output to video
+6005 6005 d cd2b60
+6005 6005 s NEXT	call OUTSCR
+6008 6008 d 217464
+6008 6008 s 	ld hl,ICOUNT		; Set iteration
+600b 600b d 34
+600b 600b s 	inc (hl)
+600c 600c d 7e
+600c 600c s 	ld a,(hl)
+600d 600d d c630
+600d 600d s 	add a,'0'
+600f 600f d dd217564
+600f 600f s 	ld ix,INFO
+6013 6013 d dd7702
+6013 6013 s 	ld (ix+2),a
+6016 6016 d 217564
+6016 6016 s 	ld hl,INFO		; Print command menu
+6019 6019 d cd0a2f
+6019 6019 s 	call 2f0aH
+601c 601c d cd4900
+601c 601c s 	call 049H		; Wait for key press
+601f 601f d fe4e
+601f 601f s 	cp 'N'
+6021 6021 d 28e2
+6021 6021 s 	jrz NEXT
+6023 6023 d fe53
+6023 6023 s 	cp 'S'
+6025 6025 d ca2161
+6025 6025 s 	jp z, SINES
+6028 6028 d c3cc06
+6028 6028 s FINISH	jp 06ccH		; Returns to BASIC
+602b 602b s ;; ----------------------------------------------------------------
+602b 602b s ;; Output a screenful of 3 columns
+602b 602b d cdc901
+602b 602b s OUTSCR	call 01c9H		; Clear screen
+602e 602e d 21c03b
+602e 602e s 	ld hl,CURCOL1
+6031 6031 d 222040
+6031 6031 s 	ld (CURSOR),hl
+6034 6034 d cd5060
+6034 6034 s 	call OUTCOL
+6037 6037 d cddd60
+6037 6037 s 	call BURGIA
+603a 603a d 21d43b
+603a 603a s 	ld hl,CURCOL2
+603d 603d d 222040
+603d 603d s 	ld (CURSOR),hl
+6040 6040 d cd5060
+6040 6040 s 	call OUTCOL
+6043 6043 d cd0661
+6043 6043 s 	call BURGIB
+6046 6046 d 21e83b
+6046 6046 s 	ld hl,CURCOL3
+6049 6049 d 222040
+6049 6049 s 	ld (CURSOR),hl
+604c 604c d cd5060
+604c 604c s 	call OUTCOL
+604f 604f d c9
+604f 604f s 	ret
+6050 6050 s ;; ----------------------------------------------------------------
+6050 6050 s ;; Output one column
+6050 6050 d 060f
+6050 6050 s OUTCOL	ld b,15
+6052 6052 d 21e063
+6052 6052 s 	ld hl,XSEQ
+6055 6055 d c5
+6055 6055 s MLOOP	push bc
+6056 6056 d e5
+6056 6056 s 	push hl
+6057 6057 d cdc963
+6057 6057 s 	call FILTMP		; Keep HL
+605a 605a d 115864
+605a 605a s 	ld de,TMPBUF		; Copy X to buffer
+605d 605d d 0600
+605d 605d s 	ld b,0
+605f 605f d 0e08
+605f 605f s 	ld c,W
+6061 6061 d edb0
+6061 6061 s 	ldir
+6063 6063 d 215f64
+6063 6063 s 	ld hl,TMPBUF + W - 1	; Size = W 
+6066 6066 d 0607
+6066 6066 s 	ld b,W - 1
+6068 6068 d 117464
+6068 6068 s 	ld de,BCDSTR + 20
+606b 606b d 1b
+606b 606b s 	dec de
+606c 606c d 1b
+606c 606c s 	dec de
+606d 606d d cdba60
+606d 606d s 	call B2STR
+6070 6070 s 	;; push de
+6070 6070 s 	;; pop hl
+6070 6070 d 2a2040
+6070 6070 s 	ld hl,(CURSOR)
+6073 6073 d 1600
+6073 6073 s 	ld d,0
+6075 6075 d 1e40
+6075 6075 s 	ld e,64
+6077 6077 d 19
+6077 6077 s 	add hl,de		; Skip to next line
+6078 6078 d 222040
+6078 6078 s 	ld (CURSOR),hl
+607b 607b d e5
+607b 607b s 	push hl
+607c 607c d 216064
+607c 607c s 	ld hl,BCDSTR
+607f 607f d cd0a2f
+607f 607f s 	call 2f0aH		; Output string
+6082 6082 d e1
+6082 6082 s 	pop hl			; Readjust cursor
+6083 6083 d 222040
+6083 6083 s 	ld (CURSOR),hl
+6086 6086 d e1
+6086 6086 s 	pop hl
+6087 6087 d 1600
+6087 6087 s 	ld d,0
+6089 6089 d 1e08
+6089 6089 s 	ld e,W
+608b 608b d 19
+608b 608b s 	add hl,de
+608c 608c d c1
+608c 608c s 	pop bc
+608d 608d d 10c6
+608d 608d s 	djnz MLOOP
+608f 608f d c9
+608f 608f s 	ret
+6090 6090 s ;; ----------------------------------------------------------------
+6090 6090 s ;; Includes
+6090 6090 s include 'mbdiv10.asm'
+6090 6090 f mbdiv10.asm
+6090 6090 s ;; ----------------------------------------------------------------
+6090 6090 s ;; 16b by 8b division HL = HL / E, remainder in A
+6090 6090 d af
+6090 6090 s DIV16x8	xor a
+6091 6091 d 0610
+6091 6091 s 	ld b,16
+6093 6093 d 29
+6093 6093 s D16x8L	add hl,hl
+6094 6094 d 17
+6094 6094 s 	rla
+6095 6095 d bb
+6095 6095 s 	cp e
+6096 6096 d 3802
+6096 6096 s 	jr c,D16x8N
+6098 6098 d 93
+6098 6098 s 	sub e
+6099 6099 d 2c
+6099 6099 s 	inc l
+609a 609a d 10f7
+609a 609a s D16x8N	djnz D16x8L
+609c 609c d c9
+609c 609c s 	ret
+609d 609d s ;; ----------------------------------------------------------------
+609d 609d s ;; Multi-byte division by E, carry in C, of number at HL-B, len in B
+609d 609d d 2b
+609d 609d s MBPDIV	dec hl
+609e 609e d 7e
+609e 609e s 	ld a,(hl)
+609f 609f d e5
+609f 609f s 	push hl
+60a0 60a0 d 6f
+60a0 60a0 s 	ld l,a
+60a1 60a1 d 61
+60a1 60a1 s 	ld h,c
+60a2 60a2 d 4b
+60a2 60a2 s 	ld c,e
+60a3 60a3 d c5
+60a3 60a3 s 	push bc
+60a4 60a4 d cd9060
+60a4 60a4 s 	call DIV16x8
+60a7 60a7 d c1
+60a7 60a7 s 	pop bc
+60a8 60a8 d 59
+60a8 60a8 s 	ld e,c
+60a9 60a9 d 4f
+60a9 60a9 s 	ld c,a
+60aa 60aa d 7d
+60aa 60aa s 	ld a,l
+60ab 60ab d e1
+60ab 60ab s 	pop hl
+60ac 60ac d 77
+60ac 60ac s 	ld (hl),a
+60ad 60ad d 10ee
+60ad 60ad s 	djnz MBPDIV
+60af 60af d c9
+60af 60af s 	ret
+60b0 60b0 s 	
+60b0 60b0 s ;; Expected prolologue			
+60b0 60b0 s ;; START	ld hl,DIVD + 3
+60b0 60b0 s ;; 		ld b,3
+60b0 60b0 s ;; 		ld c,0
+60b0 60b0 s ;; 		ld e,10
+60b0 60b0 s ;; 		call MBPDIV
+60b0 60b0 f test1.asm
+60b0 60b0 s include 'mbb2str.asm'
+60b0 60b0 f mbb2str.asm
+60b0 60b0 s ;; ----------------------------------------------------------------
+60b0 60b0 s ;; Is quotient 0?
+60b0 60b0 d 0608
+60b0 60b0 s B2ISZ	ld b,W
+60b2 60b2 d 3e00
+60b2 60b2 s 	ld a,0
+60b4 60b4 d b6
+60b4 60b4 s B2ISZL	or a,(hl)
+60b5 60b5 d c0
+60b5 60b5 s 	ret nz
+60b6 60b6 d 23
+60b6 60b6 s 	inc hl
+60b7 60b7 d 10fb
+60b7 60b7 s 	djnz B2ISZL
+60b9 60b9 d c9
+60b9 60b9 s 	ret
+60ba 60ba s ;; ----------------------------------------------------------------
+60ba 60ba s ;; Convert binary to str in DE, HL points to binary + length also in B
+60ba 60ba d e5
+60ba 60ba s B2STR	push hl
+60bb 60bb d c5
+60bb 60bb s 	push bc
+60bc 60bc d d5
+60bc 60bc s 	push de
+60bd 60bd d 0e00
+60bd 60bd s 	ld c,0
+60bf 60bf d 1e0a
+60bf 60bf s 	ld e,10
+60c1 60c1 d cd9d60
+60c1 60c1 s 	call MBPDIV 		; quotient in HL, rem in c
+60c4 60c4 d d1
+60c4 60c4 s 	pop de
+60c5 60c5 d 79
+60c5 60c5 s 	ld a,c
+60c6 60c6 d c630
+60c6 60c6 s 	add a,'0'
+60c8 60c8 d 12
+60c8 60c8 s 	ld (de),a
+60c9 60c9 d cdb060
+60c9 60c9 s 	call B2ISZ		; test quotient == 0 (Z flag)
+60cc 60cc d c1
+60cc 60cc s 	pop bc
+60cd 60cd d e1
+60cd 60cd s 	pop hl
+60ce 60ce d c8
+60ce 60ce s 	ret z			; test quotient == 0 (Z flag)
+60cf 60cf d 1b
+60cf 60cf s 	dec de
+60d0 60d0 d 18e8
+60d0 60d0 s 	jr B2STR
+60d2 60d2 s ;; Suggested call sequence:
+60d2 60d2 s ;; START	ld hl,DIVD+3
+60d2 60d2 s ;; 	ld b,3
+60d2 60d2 s ;; 	ld de,BCDSTR+20
+60d2 60d2 s ;; 	dec de
+60d2 60d2 s ;; 	dec de
+60d2 60d2 s ;; 	call B2STR
+60d2 60d2 s 	
+60d2 60d2 f test1.asm
+60d2 60d2 s include	'mbadd.asm'
+60d2 60d2 f mbadd.asm
+60d2 60d2 s ;; ---------------------------------------------------------------- 
+60d2 60d2 s ;; Multi-byte addition HL = HL+DE
+60d2 60d2 d b7
+60d2 60d2 s MBADD	or a,a
+60d3 60d3 d 0608
+60d3 60d3 s 	ld b,W
+60d5 60d5 d 1a
+60d5 60d5 s MBADDL	ld a,(de)
+60d6 60d6 d 8e
+60d6 60d6 s 	adc a,(hl)
+60d7 60d7 d 77
+60d7 60d7 s 	ld (hl),a
+60d8 60d8 d 23
+60d8 60d8 s 	inc hl
+60d9 60d9 d 13
+60d9 60d9 s 	inc de
+60da 60da d 10f9
+60da 60da s 	djnz MBADDL
+60dc 60dc d c9
+60dc 60dc s 	ret		       ; Forget the last carry when overflow
+60dd 60dd f test1.asm
+60dd 60dd s include 'burgia.asm'
+60dd 60dd f burgia.asm
+60dd 60dd s ;; ----------------------------------------------------------------
+60dd 60dd s ;; First step of the Bürgi transform
+60dd 60dd d 215864
+60dd 60dd s BURGIA	ld hl,XSEQE + W
+60e0 60e0 d 0608
+60e0 60e0 s 	ld b,W
+60e2 60e2 d b7
+60e2 60e2 s 	or a,a
+60e3 60e3 d 2b
+60e3 60e3 s BURAL	dec hl
+60e4 60e4 d 7e
+60e4 60e4 s 	ld a,(hl)
+60e5 60e5 d 1f
+60e5 60e5 s 	rra
+60e6 60e6 d 77
+60e6 60e6 s 	ld (hl),a
+60e7 60e7 d 10fa
+60e7 60e7 s 	djnz BURAL
+60e9 60e9 d 060e
+60e9 60e9 s 	ld b,14
+60eb 60eb d 214864
+60eb 60eb s 	ld hl,XSEQE - W
+60ee 60ee d 115064
+60ee 60ee s 	ld de,XSEQE
+60f1 60f1 d c5
+60f1 60f1 s BURAN	push bc
+60f2 60f2 d e5
+60f2 60f2 s 	push hl
+60f3 60f3 d d5
+60f3 60f3 s 	push de
+60f4 60f4 d cdd260
+60f4 60f4 s 	call MBADD
+60f7 60f7 d e1
+60f7 60f7 s 	pop hl
+60f8 60f8 d 0600
+60f8 60f8 s 	ld b,0
+60fa 60fa d 0e08
+60fa 60fa s 	ld c,W
+60fc 60fc d ed42
+60fc 60fc s 	sbc hl,bc
+60fe 60fe d eb
+60fe 60fe s 	ex de,hl
+60ff 60ff d e1
+60ff 60ff s 	pop hl
+6100 6100 d ed42
+6100 6100 s 	sbc hl,bc
+6102 6102 d c1
+6102 6102 s 	pop bc
+6103 6103 d 10ec
+6103 6103 s 	djnz BURAN
+6105 6105 d c9
+6105 6105 s 	ret
+6106 6106 f test1.asm
+6106 6106 s include 'burgib.asm'
+6106 6106 f burgib.asm
+6106 6106 s ;; ----------------------------------------------------------------
+6106 6106 s ;; Second step of the Bürgi transform
+6106 6106 d 11e063
+6106 6106 s BURGIB	ld de,XSEQ
+6109 6109 d 21e863
+6109 6109 s 	ld hl,XSEQ + W
+610c 610c d 060e
+610c 610c s 	ld b,14
+610e 610e d c5
+610e 610e s BURBN	push bc
+610f 610f d e5
+610f 610f s 	push hl
+6110 6110 d d5
+6110 6110 s 	push de
+6111 6111 d cdd260
+6111 6111 s 	call MBADD
+6114 6114 d e1
+6114 6114 s 	pop hl
+6115 6115 d 0600
+6115 6115 s 	ld b,0
+6117 6117 d 0e08
+6117 6117 s 	ld c,W
+6119 6119 d 09
+6119 6119 s 	add hl,bc
+611a 611a d eb
+611a 611a s 	ex de,hl
+611b 611b d e1
+611b 611b s 	pop hl
+611c 611c d 09
+611c 611c s 	add hl,bc
+611d 611d d c1
+611d 611d s 	pop bc
+611e 611e d 10ee
+611e 611e s 	djnz BURBN
+6120 6120 d c9
+6120 6120 s 	ret
+6121 6121 f test1.asm
+6121 6121 s include 'burgis.asm'	
+6121 6121 f burgis.asm
+6121 6121 s 	;; --------------------------------------------------------------------
+6121 6121 s 	;; Exit from program printing sines at current approximation
+6121 6121 d cdc901
+6121 6121 s SINES	call 01c9H		; Clear screen
+6124 6124 d 3e00
+6124 6124 s 	ld a,0			; Init angle counter to 0 deg.
+6126 6126 d 32f064
+6126 6126 s 	ld (PREDEG),a
+6129 6129 d cdfd61
+6129 6129 s 	call PTITLE		; Center 1st line title
+612c 612c d 114000
+612c 612c s 	ld de,64		; Init cursor for printing sines
+612f 612f d 21c03b
+612f 612f s 	ld hl,CURCOL1
+6132 6132 d 19
+6132 6132 s 	add hl,de
+6133 6133 d 222040
+6133 6133 s 	ld (CURSOR),hl
+6136 6136 d 22e964
+6136 6136 s 	ld (NCURSOR),hl
+6139 6139 d 215064
+6139 6139 s 	ld hl,XSEQE
+613c 613c d cdb263
+613c 613c s 	call MBLEN
+613f 613f d 32eb64
+613f 613f s 	ld (NLENDEN),a		; Keep track of precision required
+6142 6142 d 215064
+6142 6142 s 	ld hl,XSEQE		; Last in series is divisor
+6145 6145 d 11c864
+6145 6145 s 	ld de,DIVB
+6148 6148 d 010800
+6148 6148 s 	ld bc,W
+614b 614b d edb0
+614b 614b s 	ldir
+614d 614d d 21e063
+614d 614d s 	ld hl,XSEQ		; Init dividend with 1st in series
+6150 6150 d e5
+6150 6150 s 	push hl
+6151 6151 d 11c064
+6151 6151 s 	ld de,DIVA
+6154 6154 d 010800
+6154 6154 s 	ld bc,W
+6157 6157 d edb0
+6157 6157 s 	ldir
+6159 6159 d 0e00
+6159 6159 s 	ld c,0
+615b 615b d 060e
+615b 615b s 	ld b,14			; Main sine line loop
+615d 615d d c5
+615d 615d s OUTDCOL	push bc
+615e 615e d 2ae964
+615e 615e s 	ld hl,(NCURSOR)
+6161 6161 d 114000
+6161 6161 s 	ld de,64
+6164 6164 d 19
+6164 6164 s 	add hl,de
+6165 6165 d 222040
+6165 6165 s 	ld (CURSOR),hl
+6168 6168 d 22e964
+6168 6168 s 	ld (NCURSOR),hl
+616b 616b d 2af064
+616b 616b s 	ld hl,(PREDEG)
+616e 616e d 110600
+616e 616e s 	ld de,6
+6171 6171 d 19
+6171 6171 s 	add hl,de
+6172 6172 d 22f064
+6172 6172 s 	ld (PREDEG),hl
+6175 6175 s 	;; --------------------------------------------------------------------
+6175 6175 s 	;; Initialized DIVA, DIVB
+6175 6175 d cd4362
+6175 6175 s 	call MBLDIV		; Perform mb long divide
+6178 6178 d cddb61
+6178 6178 s 	call PDEG		; Print angle in deg.
+617b 617b d 21ec64
+617b 617b s 	ld hl,PREFIX
+617e 617e d cd0a2f
+617e 617e s 	call 2f0aH
+6181 6181 d cd1a62
+6181 6181 s 	call EPILOG		; Print sine first limb
+6184 6184 d 3aeb64
+6184 6184 s 	ld a,(NLENDEN)		; Adjust iterations for precision
+6187 6187 d 5f
+6187 6187 s 	ld e,a
+6188 6188 d 1600
+6188 6188 s 	ld d,0
+618a 618a d 212665
+618a 618a s 	ld hl, NDENARR
+618d 618d d 19
+618d 618d s 	add hl,de
+618e 618e d 46
+618e 618e s 	ld b,(hl)
+618f 618f d c5
+618f 618f s NDENLP	push bc	
+6190 6190 d cdc661
+6190 6190 s 	call ZDIVBUF
+6193 6193 d cd7d62
+6193 6193 s 	call SCUP10		; Perform mb ldiv on remainder
+6196 6196 d cd1a62
+6196 6196 s 	call EPILOG		; Print next limb
+6199 6199 d c1
+6199 6199 s 	pop bc
+619a 619a d 10f3
+619a 619a s 	djnz NDENLP
+619c 619c s 	;; --------------------------------------------------------------------
+619c 619c d 215064
+619c 619c s 	ld hl,XSEQE		; Re-init dividend and divisor
+619f 619f d 11c864
+619f 619f s 	ld de,DIVB
+61a2 61a2 d 010800
+61a2 61a2 s 	ld bc,W
+61a5 61a5 d edb0
+61a5 61a5 s 	ldir
+61a7 61a7 d c1
+61a7 61a7 s 	pop bc
+61a8 61a8 d e1
+61a8 61a8 s 	pop hl
+61a9 61a9 d 110800
+61a9 61a9 s 	ld de,W
+61ac 61ac d 19
+61ac 61ac s 	add hl,de
+61ad 61ad d e5
+61ad 61ad s 	push hl
+61ae 61ae d c5
+61ae 61ae s 	push bc
+61af 61af d 11c064
+61af 61af s 	ld de,DIVA
+61b2 61b2 d 010800
+61b2 61b2 s 	ld bc,W
+61b5 61b5 d edb0
+61b5 61b5 s 	ldir
+61b7 61b7 d c1
+61b7 61b7 s 	pop bc
+61b8 61b8 d 10a3
+61b8 61b8 s 	djnz OUTDCOL
+61ba 61ba s 	;; --------------------------------------------------------------------
+61ba 61ba d 21ac64
+61ba 61ba s 	ld hl,QINFO		; Print command menu
+61bd 61bd d cd0a2f
+61bd 61bd s 	call 2f0aH
+61c0 61c0 d cd4900
+61c0 61c0 s 	call 049H		; Wait for key press
+61c3 61c3 d c32860
+61c3 61c3 s 	jp FINISH		; Return to BASIC
+61c6 61c6 s 	;; ----------------------------------------------------------------
+61c6 61c6 d 0608
+61c6 61c6 s ZDIVBUF	ld b,W			; Zero BCDSTR, TRIALQ (REM, DIV?)
+61c8 61c8 d 21e064
+61c8 61c8 s 	ld hl,TRIALQ
+61cb 61cb d 3e00
+61cb 61cb s 	ld a,0
+61cd 61cd d 77
+61cd 61cd s ZLOOP1	ld (hl),a
+61ce 61ce d 23
+61ce 61ce s 	inc hl
+61cf 61cf d 10fc
+61cf 61cf s 	djnz ZLOOP1
+61d1 61d1 d 0614
+61d1 61d1 s ZBCDSTR	ld b,20
+61d3 61d3 d 216064
+61d3 61d3 s 	ld hl,BCDSTR
+61d6 61d6 d 77
+61d6 61d6 s ZLOOP2	ld (hl),a	
+61d7 61d7 d 23
+61d7 61d7 s 	inc hl
+61d8 61d8 d 10fc
+61d8 61d8 s 	djnz ZLOOP2
+61da 61da d c9
+61da 61da s 	ret
+61db 61db s 	;; ----------------------------------------------------------------
+61db 61db s 	;; Print angle
+61db 61db d 2af064
+61db 61db s PDEG	ld hl,(PREDEG)
+61de 61de d 7d
+61de 61de s 	ld a,l
+61df 61df d fe06
+61df 61df s 	cp 6
+61e1 61e1 d 2005
+61e1 61e1 s 	jr nz,PDEG1
+61e3 61e3 d 3e20
+61e3 61e3 s 	ld a,32			; Print space
+61e5 61e5 d cd2a03
+61e5 61e5 s 	call 032aH
+61e8 61e8 d 2af064
+61e8 61e8 s PDEG1	ld hl,(PREDEG)
+61eb 61eb d cd9a0a
+61eb 61eb s 	call 0a9aH		; HL to ACC
+61ee 61ee d 21f264
+61ee 61ee s 	ld hl,PREBUF
+61f1 61f1 d cdbd0f
+61f1 61f1 s 	call 0fbdH		; Convert to string
+61f4 61f4 d cd0a2f
+61f4 61f4 s 	call 2f0aH		; Print
+61f7 61f7 d 3e20
+61f7 61f7 s 	ld a,32			; Print space
+61f9 61f9 d cd2a03
+61f9 61f9 s 	call 032aH
+61fc 61fc d c9
+61fc 61fc s 	ret
+61fd 61fd s 	;; ----------------------------------------------------------------
+61fd 61fd s 	;; Print centered title
+61fd 61fd d 21f664
+61fd 61fd s PTITLE	ld hl,STITLE
+6200 6200 d 014000
+6200 6200 s 	ld bc,64
+6203 6203 d 3e00
+6203 6203 s 	ld a,0
+6205 6205 d edb1
+6205 6205 s 	cpir
+6207 6207 d cb39
+6207 6207 s 	srl c
+6209 6209 d 21003c
+6209 6209 s 	ld hl,VIDEO
+620c 620c d 1600
+620c 620c s 	ld d,0
+620e 620e d 59
+620e 620e s 	ld e,c
+620f 620f d 19
+620f 620f s 	add hl,de
+6210 6210 d 222040
+6210 6210 s 	ld (CURSOR),hl
+6213 6213 d 21f664
+6213 6213 s 	ld hl,STITLE
+6216 6216 d cd0a2f
+6216 6216 s 	call 2f0aH
+6219 6219 d c9
+6219 6219 s 	ret
+621a 621a s 	;; ----------------------------------------------------------------
+621a 621a s 	;; Print result
+621a 621a d 0607
+621a 621a s EPILOG	ld b,W-1
+621c 621c d dd21e064
+621c 621c s 	ld ix,TRIALQ
+6220 6220 d dd7e01
+6220 6220 s LSHIFT	ld a,(ix+1)
+6223 6223 d dd7700
+6223 6223 s 	ld (ix),a
+6226 6226 d dd23
+6226 6226 s 	inc ix
+6228 6228 d 10f6
+6228 6228 s 	djnz LSHIFT
+622a 622a d 3e00
+622a 622a s 	ld a,0
+622c 622c d dd7700
+622c 622c s 	ld (ix),a
+622f 622f s 	;; --------------------------------------------------------------------
+622f 622f d cdd161
+622f 622f s 	call ZBCDSTR
+6232 6232 d 21e764
+6232 6232 s 	ld hl,TRIALQ+W-1
+6235 6235 d 0607
+6235 6235 s 	ld b,W-1
+6237 6237 d 117264
+6237 6237 s 	ld de, BCDSTR+18
+623a 623a d cdba60
+623a 623a s 	call B2STR
+623d 623d d d5
+623d 623d s 	push de
+623e 623e d e1
+623e 623e s 	pop hl
+623f 623f d cd0a2f
+623f 623f s 	call 2f0aH		; Output string
+6242 6242 d c9
+6242 6242 s 	ret
+6243 6243 s 
+6243 6243 f test1.asm
+6243 6243 s include 'mbldiv.asm'	
+6243 6243 f mbldiv.asm
+6243 6243 s 	;; --------------------------------------------------------------------
+6243 6243 d cd4363
+6243 6243 s MBLDIV	call FACTOR		; Scaling factor f in B
+6246 6246 d c5
+6246 6246 s 	push bc
+6247 6247 d 21c064
+6247 6247 s 	ld hl,DIVA
+624a 624a d 11d064
+624a 624a s 	ld de,REM
+624d 624d d 010800
+624d 624d s 	ld bc,W
+6250 6250 d edb0
+6250 6250 s 	ldir			; Copy DIVA to REM
+6252 6252 d 21c864
+6252 6252 s 	ld hl,DIVB
+6255 6255 d 11d864
+6255 6255 s 	ld de,DIV
+6258 6258 d 010800
+6258 6258 s 	ld bc,W
+625b 625b d edb0
+625b 625b s 	ldir			; Copy DIVB to DIV
+625d 625d d c1
+625d 625d s 	pop bc
+625e 625e s 	;; --------------------------------------------------------------------
+625e 625e d 78
+625e 625e s 	ld a,b
+625f 625f d fe01
+625f 625f s 	cp 1
+6261 6261 d 281a
+6261 6261 s 	jrz SCUP10
+6263 6263 d 58
+6263 6263 s 	ld e,b			; Prepare to scale by f != 1
+6264 6264 d c5
+6264 6264 s 	push bc
+6265 6265 d 0608
+6265 6265 s 	ld b,W
+6267 6267 d 0e00
+6267 6267 s 	ld c,0
+6269 6269 d b7
+6269 6269 s 	or a,a
+626a 626a d 21d064
+626a 626a s 	ld hl,REM
+626d 626d d cd8e63
+626d 626d s 	call PPROD		; Scale REM by f
+6270 6270 d c1
+6270 6270 s 	pop bc			; Prepare to scale by f
+6271 6271 d 58
+6271 6271 s 	ld e,b
+6272 6272 d 0608
+6272 6272 s 	ld b,W
+6274 6274 d 0e00
+6274 6274 s 	ld c,0
+6276 6276 d b7
+6276 6276 s 	or a,a
+6277 6277 d 21d864
+6277 6277 s 	ld hl,DIV
+627a 627a d cd8e63
+627a 627a s 	call PPROD		; Scale DIV by f
+627d 627d s 	;; --------------------------------------------------------------------
+627d 627d d 21d864
+627d 627d s SCUP10	ld hl,REM+W		; Scale-up 10^n times
+6280 6280 d cdb263
+6280 6280 s 	call MBLEN		; as much as possible in W bytes
+6283 6283 d fe08
+6283 6283 s 	cp W
+6285 6285 d 280f
+6285 6285 s 	jrz PREPM
+6287 6287 d 1e0a
+6287 6287 s 	ld e,10
+6289 6289 d 0608
+6289 6289 s 	ld b,W
+628b 628b d 0e00
+628b 628b s 	ld c,0
+628d 628d d b7
+628d 628d s 	or a,a
+628e 628e d 21d064
+628e 628e s 	ld hl,REM
+6291 6291 d cd8e63
+6291 6291 s 	call PPROD
+6294 6294 d 18e7
+6294 6294 s 	jr SCUP10
+6296 6296 s 	;; --------------------------------------------------------------------
+6296 6296 d 21e064
+6296 6296 s PREPM	ld hl, DIV+W
+6299 6299 d cdb263
+6299 6299 s 	call MBLEN
+629c 629c d 4f
+629c 629c s 	ld c,a
+629d 629d d 3e08
+629d 629d s 	ld a,W
+629f 629f d 91
+629f 629f s 	sub c
+62a0 62a0 d f5
+62a0 62a0 s 	push af			; Keep number of iterations in A
+62a1 62a1 s 	;; --------------------------------------------------------------------
+62a1 62a1 d f1
+62a1 62a1 s MAIND	pop af
+62a2 62a2 d fe00
+62a2 62a2 s 	cp 0
+62a4 62a4 d c8
+62a4 62a4 s 	ret z			; Exit point: return if zero
+62a5 62a5 d 3d
+62a5 62a5 s 	dec a
+62a6 62a6 d f5
+62a6 62a6 s 	push af
+62a7 62a7 s 	;; --------------------------------------------------------------------
+62a7 62a7 d 21d864
+62a7 62a7 s 	ld hl, DIV		; Main LDIV loop
+62aa 62aa d 11c864
+62aa 62aa s 	ld de, DIVB		; Copy DIV to DIVB
+62ad 62ad d 010800
+62ad 62ad s 	ld bc, W
+62b0 62b0 d edb0
+62b0 62b0 s 	ldir
+62b2 62b2 d 21c864
+62b2 62b2 s 	ld hl, DIVB		; Is REM > DIVB=DIV ?
+62b5 62b5 d 11d064
+62b5 62b5 s 	ld de, REM
+62b8 62b8 d cda763
+62b8 62b8 s 	call MBSUB
+62bb 62bb d 300a
+62bb 62bb s 	jr NC,TRIALD		; Jump to trial quotient
+62bd 62bd d 0601
+62bd 62bd s 	ld b,1			; If not, quotient = 0 and shift right
+62bf 62bf d 21e064
+62bf 62bf s 	ld hl,TRIALQ
+62c2 62c2 d cd7763
+62c2 62c2 s 	call RSHIFT
+62c5 62c5 d 18da
+62c5 62c5 s 	jr MAIND
+62c7 62c7 s 	;; --------------------------------------------------------------------
+62c7 62c7 d 11d864
+62c7 62c7 s TRIALD	ld de, REM+W		; Trial quotient 
+62ca 62ca d 1b
+62ca 62ca s T2REM	dec de			; Find hi 2 bytes of REM
+62cb 62cb d 1a
+62cb 62cb s 	ld a,(de)
+62cc 62cc d fe00
+62cc 62cc s 	cp 0
+62ce 62ce d 28fa
+62ce 62ce s 	jrz T2REM
+62d0 62d0 d 67
+62d0 62d0 s 	ld h,a
+62d1 62d1 d 1b
+62d1 62d1 s 	dec de
+62d2 62d2 d 1a
+62d2 62d2 s 	ld a,(de)
+62d3 62d3 d 6f
+62d3 62d3 s 	ld l, a			; hi 2b in HL
+62d4 62d4 s 	;; --------------------------------------------------------------------
+62d4 62d4 d 11e064
+62d4 62d4 s 	ld de, DIV+W
+62d7 62d7 d 1b
+62d7 62d7 s T1DIV	dec de			; Find hi byte of DIV
+62d8 62d8 d 1a
+62d8 62d8 s 	ld a,(de)
+62d9 62d9 d fe00
+62d9 62d9 s 	cp 0
+62db 62db d 28fa
+62db 62db s 	jrz T1DIV		; hi 1b in a
+62dd 62dd s 	;; --------------------------------------------------------------------
+62dd 62dd d 5f
+62dd 62dd s 	ld e,a
+62de 62de d 1600
+62de 62de s 	ld d,0
+62e0 62e0 d cd5863
+62e0 62e0 s 	call DIV1616		; Trial quotient in B
+62e3 62e3 s 	;; Check if > 256?
+62e3 62e3 s 	;; --------------------------------------------------------------------
+62e3 62e3 d 21e064
+62e3 62e3 s 	ld hl,TRIALQ
+62e6 62e6 d 70
+62e6 62e6 s 	ld (hl),b
+62e7 62e7 d 21d864
+62e7 62e7 s DECQ	ld hl, DIV		
+62ea 62ea d 11c864
+62ea 62ea s 	ld de, DIVB		; Copy DIV to DIVB
+62ed 62ed d 010800
+62ed 62ed s 	ld bc, W
+62f0 62f0 d edb0
+62f0 62f0 s 	ldir
+62f2 62f2 d 21e064
+62f2 62f2 s 	ld hl,TRIALQ		; Trial B*DIVB
+62f5 62f5 d 5e
+62f5 62f5 s 	ld e,(hl)
+62f6 62f6 d 0608
+62f6 62f6 s 	ld b,W
+62f8 62f8 d 0e00
+62f8 62f8 s 	ld c,0
+62fa 62fa d b7
+62fa 62fa s 	or a,a
+62fb 62fb d 21c864
+62fb 62fb s 	ld hl,DIVB
+62fe 62fe d cd8e63
+62fe 62fe s 	call PPROD
+6301 6301 s 	;; --------------------------------------------------------------------
+6301 6301 d 21d864
+6301 6301 s 	ld hl, REM+W		; Difference of lengths REM-DIV
+6304 6304 d cdb263
+6304 6304 s 	call MBLEN
+6307 6307 d f5
+6307 6307 s 	push af
+6308 6308 d 21e064
+6308 6308 s 	ld hl, DIV+W
+630b 630b d cdb263
+630b 630b s 	call MBLEN
+630e 630e d 4f
+630e 630e s 	ld c,a
+630f 630f d f1
+630f 630f s 	pop af
+6310 6310 d 91
+6310 6310 s 	sub a,c
+6311 6311 d 3d
+6311 6311 s 	dec a
+6312 6312 d 2807
+6312 6312 s 	jrz RSSKIP		; Right shift if a>0
+6314 6314 d 47
+6314 6314 s 	ld b,a
+6315 6315 d 21c864
+6315 6315 s 	ld hl, DIVB
+6318 6318 d cd7763
+6318 6318 s 	call RSHIFT
+631b 631b d b7
+631b 631b s RSSKIP	or a,a
+631c 631c d 21c864
+631c 631c s 	ld hl, DIVB		; Is REM > DIVB ?
+631f 631f d 11d064
+631f 631f s 	ld de, REM
+6322 6322 d cda763
+6322 6322 s 	call MBSUB
+6325 6325 d 3006
+6325 6325 s 	jrnc NEXTQ
+6327 6327 d 21e064
+6327 6327 s 	ld hl,TRIALQ
+632a 632a d 35
+632a 632a s 	dec (hl)		; Check for trialq = 0 -> error
+632b 632b d 18ba
+632b 632b s 	jr DECQ
+632d 632d s 	;; --------------------------------------------------------------------
+632d 632d d 0601
+632d 632d s NEXTQ	ld b,1			; Keep quotient and shift right
+632f 632f d 21e064
+632f 632f s 	ld hl,TRIALQ
+6332 6332 d cd7763
+6332 6332 s 	call RSHIFT
+6335 6335 d 21c864
+6335 6335 s 	ld hl, DIVB		; Copy remainder to REM
+6338 6338 d 11d064
+6338 6338 s 	ld de, REM
+633b 633b d 010800
+633b 633b s 	ld bc, W
+633e 633e d edb0
+633e 633e s 	ldir
+6340 6340 d c3a162
+6340 6340 s 	jp MAIND
+6343 6343 s 	;; --------------------------------------------------------------------
+6343 6343 d 21d064
+6343 6343 s FACTOR	ld hl,DIVB+W		; Scale 256 // (v_{n-1} + 1)
+6346 6346 d 2b
+6346 6346 s LOOPF	dec hl
+6347 6347 d 7e
+6347 6347 s 	ld a,(hl)
+6348 6348 d fe00
+6348 6348 s 	cp 0
+634a 634a d 28fa
+634a 634a s 	jrz LOOPF
+634c 634c d 3c
+634c 634c s 	inc a
+634d 634d s 	;; ld e,a
+634d 634d s 	;; ld h,1
+634d 634d s 	;; ld l,0
+634d 634d s 	;; call DIV16x8		; Result in HL
+634d 634d d 5f
+634d 634d s 	ld e,a
+634e 634e d 1600
+634e 634e s 	ld d,0
+6350 6350 d 2601
+6350 6350 s 	ld h,1
+6352 6352 d 2e00
+6352 6352 s 	ld l,0
+6354 6354 d cd5863
+6354 6354 s 	call DIV1616		; Quotient in b
+6357 6357 d c9
+6357 6357 s 	ret
+6358 6358 f test1.asm
+6358 6358 s include 'div16x16.asm'
+6358 6358 f div16x16.asm
+6358 6358 s 	;; See: TRS-80 Assembly Language Programming, p.143
+6358 6358 s 	;; Entry: HL = dividend, DE = divisor
+6358 6358 s 	;; Exit:  B = max(255,quotient); HL = remainder
+6358 6358 s 	;; Used:  A, C
+6358 6358 d 010000
+6358 6358 s DIV1616	ld bc,0
+635b 635b d b7
+635b 635b s D1616LP	or a,a
+635c 635c d ed52
+635c 635c s 	sbc hl,de
+635e 635e d 3808
+635e 635e s 	jr C, D1616X
+6360 6360 d 03
+6360 6360 s 	inc bc
+6361 6361 d 78
+6361 6361 s 	ld a,b
+6362 6362 d fe00
+6362 6362 s 	cp 0
+6364 6364 d 28f5
+6364 6364 s 	jrz D1616LP
+6366 6366 d 0eff
+6366 6366 s 	ld c,255
+6368 6368 d 41
+6368 6368 s D1616X	ld b,c
+6369 6369 d 19
+6369 6369 s 	add hl,de
+636a 636a d c9
+636a 636a s 	ret
+636b 636b s 	
+636b 636b f test1.asm
+636b 636b s include 'mult8.asm'
+636b 636b f mult8.asm
+636b 636b s ;; ----------------------------------------------------------------
+636b 636b s ;; Multiply 8-bit values HL = H * E
+636b 636b d 1600
+636b 636b s MULT8	ld d,0
+636d 636d d 6a
+636d 636d s 	ld l,d
+636e 636e d 0608
+636e 636e s 	ld b,8
+6370 6370 d 29
+6370 6370 s M8LOOP	add hl,hl
+6371 6371 d 3001
+6371 6371 s 	jrnc M8SKIP
+6373 6373 d 19
+6373 6373 s 	add hl,de
+6374 6374 d 10fa
+6374 6374 s M8SKIP	djnz M8LOOP	
+6376 6376 d c9
+6376 6376 s 	ret
+6377 6377 f test1.asm
+6377 6377 s include 'shift8.asm'
+6377 6377 f shift8.asm
+6377 6377 d e5
+6377 6377 s RSHIFT	push hl
+6378 6378 d c5
+6378 6378 s 	push bc
+6379 6379 d 0e07
+6379 6379 s 	ld c,W-1
+637b 637b d 0600
+637b 637b s 	ld b,0
+637d 637d d 09
+637d 637d s 	add hl,bc
+637e 637e d 0607
+637e 637e s 	ld b,W-1
+6380 6380 d 2b
+6380 6380 s RSLOOP	dec hl
+6381 6381 d 7e
+6381 6381 s 	ld a,(hl)
+6382 6382 d 23
+6382 6382 s 	inc hl
+6383 6383 d 77
+6383 6383 s 	ld (hl),a
+6384 6384 d 2b
+6384 6384 s 	dec hl
+6385 6385 d 10f9
+6385 6385 s 	djnz RSLOOP
+6387 6387 d 3600
+6387 6387 s 	ld (hl),0
+6389 6389 d c1
+6389 6389 s 	pop bc
+638a 638a d e1
+638a 638a s 	pop hl
+638b 638b d 10ea
+638b 638b s 	djnz RSHIFT
+638d 638d d c9
+638d 638d s 	ret
+638e 638e f test1.asm
+638e 638e s include 'mbpprod.asm'
+638e 638e f mbpprod.asm
+638e 638e s ;; ----------------------------------------------------------------
+638e 638e s ;; Partial product of number at HL by E
+638e 638e s ;; Range/Length in B, Carry = 0 in C, F with carry flag at 0
+638e 638e s ;; Zeroed W-byte buffer at NBUF
+638e 638e s ;; Result in buffer at NBUF
+638e 638e d d5
+638e 638e s PPROD	push de
+638f 638f d e5
+638f 638f s 	push hl
+6390 6390 d 7e
+6390 6390 s 	ld a,(hl)
+6391 6391 d 67
+6391 6391 s 	ld h,a
+6392 6392 d f5
+6392 6392 s 	push af
+6393 6393 d c5
+6393 6393 s 	push bc
+6394 6394 d cd6b63
+6394 6394 s 	call MULT8
+6397 6397 d c1
+6397 6397 s 	pop bc
+6398 6398 d f1
+6398 6398 s 	pop af
+6399 6399 d 79
+6399 6399 s 	ld a,c
+639a 639a d 8d
+639a 639a s 	adc a,l
+639b 639b d 57
+639b 639b s 	ld d,a
+639c 639c d 3e00
+639c 639c s 	ld a,0
+639e 639e d 8c
+639e 639e s 	adc a,h
+639f 639f d 4f
+639f 639f s 	ld c,a
+63a0 63a0 d e1
+63a0 63a0 s 	pop hl
+63a1 63a1 d 72
+63a1 63a1 s 	ld (hl),d
+63a2 63a2 d 23
+63a2 63a2 s 	inc hl
+63a3 63a3 d d1
+63a3 63a3 s 	pop de
+63a4 63a4 d 10e8
+63a4 63a4 s 	djnz PPROD
+63a6 63a6 d c9
+63a6 63a6 s 	ret
+63a7 63a7 f test1.asm
+63a7 63a7 s include 'mbsub.asm'	
+63a7 63a7 f mbsub.asm
+63a7 63a7 s ;; ---------------------------------------------------------------- 
+63a7 63a7 s ;; Multi-byte subtraction HL = DE - HL
+63a7 63a7 d b7
+63a7 63a7 s MBSUB	or a,a
+63a8 63a8 d 0608
+63a8 63a8 s 	ld b,W
+63aa 63aa d 1a
+63aa 63aa s MBSUBL	ld a,(de)
+63ab 63ab d 9e
+63ab 63ab s 	sbc a,(hl)
+63ac 63ac d 77
+63ac 63ac s 	ld (hl),a
+63ad 63ad d 23
+63ad 63ad s 	inc hl
+63ae 63ae d 13
+63ae 63ae s 	inc de
+63af 63af d 10f9
+63af 63af s 	djnz MBSUBL
+63b1 63b1 d c9
+63b1 63b1 s 	ret		       ; Forget the last carry when underflow
+63b2 63b2 f test1.asm
+63b2 63b2 s include 'mblen.asm'	
+63b2 63b2 f mblen.asm
+63b2 63b2 s ;; ----------------------------------------------------------------
+63b2 63b2 s ;; Length of number at HL - W returned in A
+63b2 63b2 d 3e07
+63b2 63b2 s MBLEN	ld a,W - 1
+63b4 63b4 d 0600
+63b4 63b4 s 	ld b,0
+63b6 63b6 d b8
+63b6 63b6 s WHLEN	cp b
+63b7 63b7 d 280e
+63b7 63b7 s 	jrz OUTLEN
+63b9 63b9 d 4f
+63b9 63b9 s 	ld c,a
+63ba 63ba d 2b
+63ba 63ba s 	dec hl
+63bb 63bb d 7e
+63bb 63bb s 	ld a,(hl)
+63bc 63bc d fe00
+63bc 63bc s 	cp 0
+63be 63be d 79
+63be 63be s 	ld a,c
+63bf 63bf d 2803
+63bf 63bf s 	jrz NXTLEN
+63c1 63c1 d 47
+63c1 63c1 s 	ld b,a
+63c2 63c2 d 18f2
+63c2 63c2 s 	jr WHLEN
+63c4 63c4 d 3d
+63c4 63c4 s NXTLEN	dec a
+63c5 63c5 d 18ef
+63c5 63c5 s 	jr WHLEN
+63c7 63c7 d 3c
+63c7 63c7 s OUTLEN	inc a
+63c8 63c8 d c9
+63c8 63c8 s 	ret
+63c9 63c9 f test1.asm
+63c9 63c9 d e5
+63c9 63c9 s FILTMP	push hl
+63ca 63ca d 216064
+63ca 63ca s 	ld hl,BCDSTR
+63cd 63cd d 3e20
+63cd 63cd s 	ld a,' '
+63cf 63cf d 77
+63cf 63cf s 	ld (hl),a
+63d0 63d0 d 116064
+63d0 63d0 s 	ld de,BCDSTR
+63d3 63d3 d 13
+63d3 63d3 s 	inc de
+63d4 63d4 d 0600
+63d4 63d4 s 	ld b,0
+63d6 63d6 d 0e13
+63d6 63d6 s 	ld c,19
+63d8 63d8 d edb0
+63d8 63d8 s 	ldir
+63da 63da d 3e00
+63da 63da s 	ld a,0
+63dc 63dc d 1b
+63dc 63dc s 	dec de
+63dd 63dd d 12
+63dd 63dd s 	ld (de),a
+63de 63de d e1
+63de 63de s 	pop hl
+63df 63df d c9
+63df 63df s 	ret
+63e0 63e0 s ;; ----------------------------------------------------------------
+63e0 63e0 s ;; Test data
+63e0 63e0 d 0100000000000000
+63e0 63e0 s XSEQ	defb	1,0,0,0,0,0,0,0
+63e8 63e8 d 0200000000000000
+63e8 63e8 s 	defb	2,0,0,0,0,0,0,0
+63f0 63f0 d 0300000000000000
+63f0 63f0 s 	defb	3,0,0,0,0,0,0,0
+63f8 63f8 d 0400000000000000
+63f8 63f8 s 	defb	4,0,0,0,0,0,0,0
+6400 6400 d 0500000000000000
+6400 6400 s 	defb	5,0,0,0,0,0,0,0
+6408 6408 d 0600000000000000
+6408 6408 s 	defb	6,0,0,0,0,0,0,0
+6410 6410 d 0700000000000000
+6410 6410 s 	defb	7,0,0,0,0,0,0,0
+6418 6418 d 0800000000000000
+6418 6418 s 	defb	8,0,0,0,0,0,0,0
+6420 6420 d 0900000000000000
+6420 6420 s 	defb	9,0,0,0,0,0,0,0
+6428 6428 d 0a00000000000000
+6428 6428 s 	defb	10,0,0,0,0,0,0,0
+6430 6430 d 0b00000000000000
+6430 6430 s 	defb	11,0,0,0,0,0,0,0
+6438 6438 d 0c00000000000000
+6438 6438 s 	defb	12,0,0,0,0,0,0,0
+6440 6440 d 0d00000000000000
+6440 6440 s 	defb	13,0,0,0,0,0,0,0
+6448 6448 d 0e00000000000000
+6448 6448 s 	defb	14,0,0,0,0,0,0,0
+6450 6450 d 1000000000000000
+6450 6450 s XSEQE	defb	16,0,0,0,0,0,0,0
+6458 6458 s TMPBUF	dc	W,0
+6458 6458 d 0000000000000000
+6460 6460 s BCDSTR	dc	20,0
+6460 6460 d 00000000000000000000000000000000
+6470 6470 d 00000000
+6474 6474 s 	;; ----------------------------------------------------------------
+6474 6474 d 00
+6474 6474 s ICOUNT	defb 	0	
+6475 6475 d 0a282029205072657373203c4e3e20746f20697465726174652c203c533e20666f722073696e65732c203c513e20746f20717569742e00
+6475 6475 s INFO	defb	10,'( ) Press <N> to iterate, <S> for sines, <Q> to quit.',0	
+64ac 64ac d 0a5072657373206b657920746f20717569742e00
+64ac 64ac s QINFO	defb	10,'Press key to quit.',0
+64c0 64c0 s 	;; ----------------------------------------------------------------
+64c0 64c0 s DIVA	dc	W,0
+64c0 64c0 d 0000000000000000
+64c8 64c8 s DIVB	dc	W,0
+64c8 64c8 d 0000000000000000
+64d0 64d0 s REM	dc	W,0
+64d0 64d0 d 0000000000000000
+64d8 64d8 s DIV	dc	W,0
+64d8 64d8 d 0000000000000000
+64e0 64e0 s TRIALQ	dc	W,0
+64e0 64e0 d 0000000000000000
+64e8 64e8 d 00
+64e8 64e8 s NITER	defb	0	
+64e9 64e9 s 	;; ----------------------------------------------------------------
+64e9 64e9 d 0000
+64e9 64e9 s NCURSOR	dw	0
+64eb 64eb d 00
+64eb 64eb s NLENDEN	defb	0
+64ec 64ec d 20302e00
+64ec 64ec s PREFIX	defb	' 0.',0
+64f0 64f0 d 0000
+64f0 64f0 s PREDEG	dw	0
+64f2 64f2 s PREBUF	dc	4,0	
+64f2 64f2 d 00000000
+64f6 64f6 d 3d3d3d3d2f2f204275657267692773204b756e73747765673a205461626c65206f662053696e6573202f2f3d3d3d3d00
+64f6 64f6 s STITLE	defb	"====// Buergi's Kunstweg: Table of Sines //====",0
+6526 6526 d 020202020202040c0c
+6526 6526 s NDENARR defb	2,2,2,2,2,2,4,12,12	
+652f 652f s 	end START
+6000 e
+0008 v W
+64d8 a DIV
+64d0 a REM
+62e7 a DECQ
+61db a PDEG
+64c0 a DIVA
+64c8 a DIVB
+6368 a D1616X
+6475 a INFO
+6005 a NEXT
+63e0 a XSEQ
+61e8 a PDEG1
+6093 a D16x8L
+62d7 a T1DIV
+609a a D16x8N
+60b0 a B2ISZ
+62ca a T2REM
+60ba a B2STR
+60d2 a MBADD
+636b a MULT8
+62a1 a MAIND
+63b2 a MBLEN
+635b a D1616LP
+6358 a DIV1616
+60e3 a BURAL
+3c00 v VIDEO
+60f1 a BURAN
+610e a BURBN
+63a7 a MBSUB
+627d a SCUP10
+64ac a QINFO
+63b6 a WHLEN
+6346 a LOOPF
+6121 a SINES
+64e8 a NITER
+6296 a PREPM
+638e a PPROD
+6450 a XSEQE
+6055 a MLOOP
+6000 a START
+632d a NEXTQ
+60b4 a B2ISZL
+6090 a DIV16x8
+6374 a M8SKIP
+6370 a M8LOOP
+60d5 a MBADDL
+61cd a ZLOOP1
+61d6 a ZLOOP2
+64f0 a PREDEG
+60dd a BURGIA
+6106 a BURGIB
+6243 a MBLDIV
+6343 a FACTOR
+621a a EPILOG
+6028 a FINISH
+6460 a BCDSTR
+609d a MBPDIV
+618f a NDENLP
+64f2 a PREBUF
+62c7 a TRIALD
+63aa a MBSUBL
+6220 a LSHIFT
+63c9 a FILTMP
+64e0 a TRIALQ
+6458 a TMPBUF
+64ec a PREFIX
+6377 a RSHIFT
+6474 a ICOUNT
+61fd a PTITLE
+64f6 a STITLE
+6050 a OUTCOL
+63c7 a OUTLEN
+63c4 a NXTLEN
+631b a RSSKIP
+4020 v CURSOR
+6380 a RSLOOP
+602b a OUTSCR
+3bc0 v CURCOL1
+3bd4 v CURCOL2
+3be8 v CURCOL3
+64eb a NLENDEN
+6526 a NDENARR
+615d a OUTDCOL
+61c6 a ZDIVBUF
+61d1 a ZBCDSTR
+64e9 a NCURSOR
